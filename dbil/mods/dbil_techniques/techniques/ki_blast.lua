@@ -1,0 +1,31 @@
+-- Basic energy blast: fast, cheap, low damage. Every fighter starts with it.
+dbil.techniques.register("ki_blast", {
+	name = "Rajada de Ki",
+	description = "Uma esfera de Ki concentrado disparada da palma da mão. Rápida e barata.",
+	type = "projectile",
+	shape = "ball",
+	icon = "dbil_tech_ki_blast.png",
+	damage = 14,
+	ki_cost = 8,
+	cooldown = 0.7,
+	speed = 28,
+	range = 55,
+	size = 0.3,
+	knockback = 2.5,
+	hitstun = 0.15,
+	requirements = { level = 1 },
+	learn = { auto = true },
+	mastery = {
+		max_level = 10,
+		xp_per_use = 3,
+		xp_per_hit = 5,
+		damage_per_level = 0.05,
+		cost_reduction_per_level = 0.03,
+		cooldown_reduction_per_level = 0.02,
+	},
+	visual = {
+		texture = "ki_ball",
+		color = "#7fd4ff",
+		impact = "ki_explosion",
+	},
+})
