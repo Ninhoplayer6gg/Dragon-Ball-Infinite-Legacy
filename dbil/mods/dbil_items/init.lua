@@ -28,3 +28,25 @@ core.register_craftitem("dbil_items:senzu", {
 		return itemstack
 	end,
 })
+
+-- Automatic pickup: kit items (fists, techniques) use the click for combat,
+-- so dropped rewards are collected by walking or flying over them.
+dbil.players.register_tick("item_pickup", cfg.pickup_interval, function(player)
+	if player:get_hp() <= 0 then
+		return
+	end
+	local pos = vector.add(player:get_pos(), vector.new(0, 0.6, 0))
+	local inv = player:get_inventory()
+	for _, obj in ipairs(core.get_objects_inside_radius(pos, cfg.pickup_radius)) do
+		local ent = not obj:is_player() and obj:get_luaentity()
+		if ent and ent.name == "__builtin:item" and ent.itemstring ~= "" then
+			local stack = ItemStack(ent.itemstring)
+			if inv:room_for_item("main", stack) then
+				inv:add_item("main", stack)
+				ent.itemstring = ""
+				obj:remove()
+				dbil.events.emit("item_picked_up", player, stack:get_name(), stack:get_count())
+			end
+		end
+	end
+end)

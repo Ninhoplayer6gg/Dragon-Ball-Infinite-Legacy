@@ -541,6 +541,114 @@ step("ranged_vs_flyer", function()
 	return 1.0
 end)
 
+step("self_destruct_setup", function()
+	local p2 = P("P2")
+	local spawn = dbil.world.get_spawn()
+	clear_enemies(spawn)
+	P("P1"):set_pos(vector.add(spawn, vector.new(0, 0, -120)))
+	p2:set_pos(spawn)
+	dbil.resources.fill(p2)
+	ctx.sd_hp = p2:get_hp()
+	ctx.bomber = dbil.enemies.spawn("saibaman", vector.add(spawn, vector.new(0, 0.3, 2)))
+	local ent = ctx.bomber:get_luaentity()
+	ent._ai.self_destruct_rolled = true
+	ent._ai.self_destruct_armed = true
+	ent._ai.target = p2
+	ent._ai.state = "chase"
+	return 3.0
+end)
+
+step("self_destruct_explodes", function()
+	local p2 = P("P2")
+	check(ctx.bomber:get_luaentity() == nil or not ctx.bomber:get_luaentity():dbil_is_alive(), "saibaman_self_destructs")
+	check(p2:get_hp() < ctx.sd_hp, "self_destruct_damages", ("%d -> %d"):format(ctx.sd_hp, p2:get_hp()))
+	P("P1"):set_pos(dbil.world.get_spawn())
+	dbil.resources.fill(p2)
+end)
+
+step("guard_break", function()
+	local p2 = P("P2")
+	local state = dbil.players.get_state(p2)
+	local enemy = dbil.enemies.spawn("saibaman", front_of(p2, 2))
+	enemy:get_luaentity()._stunned_until = dbil.util.now() + 30
+	face(p2, enemy:get_pos())
+	dbil.resources.set(p2, "stamina", 0)
+	state.guard.active = true
+	local _, result = dbil.combat.deal_damage({ attacker = enemy, target = p2, amount = 20, kind = "melee" })
+	check(result == "guard_break", "guard_breaks_without_stamina", tostring(result))
+	check(dbil.input.is_locked(p2), "guard_break_stuns")
+	enemy:remove()
+	dbil.resources.fill(p2)
+	return 1.2
+end)
+
+step("senzu_pickup_and_eat", function()
+	local p2 = P("P2")
+	local inv = p2:get_inventory()
+	inv:remove_item("main", ItemStack("dbil_items:senzu 99"))
+	core.add_item(vector.add(p2:get_pos(), vector.new(0, 0.5, 0)), ItemStack("dbil_items:senzu 2"))
+	return 1.0
+end)
+
+step("senzu_eat", function()
+	local p2 = P("P2")
+	local inv = p2:get_inventory()
+	check(inv:contains_item("main", ItemStack("dbil_items:senzu 2")), "dropped_item_auto_pickup")
+	dbil.resources.set(p2, "hp", 10)
+	dbil.ki.set(p2, 0)
+	local def = core.registered_items["dbil_items:senzu"]
+	local stack = def.on_use(ItemStack("dbil_items:senzu 2"), p2, { type = "nothing" })
+	check(stack and stack:get_count() == 1, "senzu_consumed")
+	check(p2:get_hp() == dbil.stats.derived(p2).max_hp and dbil.ki.ratio(p2) > 0.99, "senzu_restores")
+end)
+
+step("super_saiyan_unlock", function()
+	local p2 = P("P2")
+	dbil.progression.set_level(p2, 20)
+	check(not dbil.transformations.is_unlocked(p2, "super_saiyan"), "ssj_not_auto_unlocked")
+	check(not dbil.transformations.unlock(p2, "super_saiyan"), "ssj_needs_story_flag")
+	dbil.players.get_character(p2).flags.ssj_awakened = true
+	check(dbil.transformations.unlock(p2, "super_saiyan"), "ssj_unlocks_with_flag")
+	dbil.resources.fill(p2)
+	ctx.ssj_pl = dbil.power.get_current(p2)
+	check(dbil.transformations.activate(p2, "super_saiyan"), "ssj_activates")
+	return 3.2
+end)
+
+step("super_saiyan_active", function()
+	local p2 = P("P2")
+	local form = dbil.transformations.get_active(p2)
+	check(form and form.id == "super_saiyan", "ssj_active_after_transform_time")
+	check(p2:get_properties().textures[2] == "dbil_hair_gold.png", "ssj_golden_hair")
+	check(dbil.power.get_current(p2) > ctx.ssj_pl * 2.5, "ssj_power_multiplier",
+		("%d -> %d"):format(ctx.ssj_pl, dbil.power.get_current(p2)))
+	dbil.transformations.deactivate(p2, "test")
+	check(p2:get_properties().textures[2] == "dbil_hair_saiyan.png", "hair_restored_after_revert")
+end)
+
+step("debug_commands_smoke", function()
+	core.set_player_privs("P1", { interact = true, shout = true, dbil_admin = true })
+	local cmd = core.registered_chatcommands["dbil"]
+	local calls = {
+		"help", "info", "info P2", "pl", "heal", "ki max", "hp 50", "stamina 10", "xp 10", "level 6",
+		"attr strength 25", "learn energy_wave", "techniques", "mastery technique:ki_blast 3",
+		"transform kaioken", "transform off", "fly", "fly", "god", "god", "spawn saibaman 2",
+		"killall 30", "flag test_flag on", "quest start tutorial_ki", "pvp off", "spawnpoint",
+		"save", "status", "unknown_cmd", "reset",
+	}
+	local crashed = {}
+	for _, c in ipairs(calls) do
+		local _, msg = cmd.func("P1", c)
+		if type(msg) == "string" and msg:find("^Erro:") then
+			crashed[#crashed + 1] = c .. " => " .. msg
+		end
+	end
+	check(#crashed == 0, "debug_commands_no_errors", table.concat(crashed, "; "))
+	local ok, msg = cmd.func("P2", "heal")
+	check(not ok and msg:find("privil"), "debug_requires_privilege")
+	dbil.resources.fill(P("P1"))
+end)
+
 step("persistence_roundtrip", function()
 	local p1 = P("P1")
 	dbil.players.save(p1)

@@ -103,6 +103,20 @@ for slot = 1, input.KIT_SLOTS.technique_count do
 	})
 end
 
+-- The bare hand (empty hotbar slot) looks like the fists and can punch
+-- creatures (entity punches are turned into light attacks by dbil_combat).
+core.override_item("", {
+	wield_image = "dbil_item_fists.png",
+	wield_scale = { x = 0.7, y = 0.7, z = 1 },
+	range = reach,
+	tool_capabilities = {
+		full_punch_interval = 0.4,
+		max_drop_level = 0,
+		groupcaps = {},
+		damage_groups = {},
+	},
+})
+
 local function is_kit(stack)
 	return core.get_item_group(stack:get_name(), "dbil_kit") > 0
 end

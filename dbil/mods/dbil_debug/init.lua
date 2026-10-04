@@ -300,16 +300,17 @@ register("spawn", {
 })
 
 register("killall", {
-	params = "[raio]",
-	description = "Remove inimigos próximos",
+	params = "[raio] [todos]",
+	description = "Remove inimigos próximos (bonecos de treino só com 'todos')",
 	func = function(name, args)
 		local player, err = target_player(name)
 		if not player then return false, err end
 		local radius = tonumber(args[1]) or 40
+		local everything = args[2] == "todos"
 		local n = 0
 		for _, obj in ipairs(core.get_objects_inside_radius(player:get_pos(), radius)) do
 			local ent = obj:get_luaentity()
-			if ent and ent._dbil_actor then
+			if ent and ent._dbil_actor and (everything or not ent._def.passive) then
 				obj:remove()
 				n = n + 1
 			end

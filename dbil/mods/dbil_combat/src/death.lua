@@ -25,6 +25,10 @@ core.register_on_player_hpchange(function(player, hp_change, reason)
 	if dbil.movement.is_invulnerable(player) then
 		return 0
 	end
+	-- Fighters in flight control their landing.
+	if rtype == "fall" and dbil.flight and dbil.flight.is_flying(player) then
+		return 0
+	end
 	local max = dbil.resources.get_max(player, "hp")
 	local mult = rtype == "fall" and cfg.fall_damage_mult or cfg.environment_damage_mult
 	return math.min(-1, math.floor(hp_change * max / ENGINE_HP * mult + 0.5))

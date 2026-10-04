@@ -85,6 +85,7 @@ core = setmetatable({
 	formspec_escape = function(s) return s end,
 	colorize = function(_, s) return s end,
 	get_item_group = function() return 0 end,
+	override_item = function(name) mock.registered.override_item = (mock.registered.override_item or 0) + 1 end,
 	registered_nodes = {},
 	registered_items = {},
 }, {
