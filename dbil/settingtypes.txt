@@ -1,0 +1,36 @@
+# Dragon Ball: Infinite Legacy — ajustes principais.
+# Qualquer valor de dbil_core/config/*.lua pode ser alterado no minetest.conf
+# com o caminho completo (ex.: dbil.flight.drain_moving = 1.5). Os mais úteis
+# aparecem aqui no menu de configurações do Luanti.
+
+[Combate]
+# Permite dano entre jogadores (sparring). Desligado no co-op.
+dbil.combat.pvp (PvP entre jogadores) bool false
+# Multiplicador do dano de queda (relativo à vida máxima).
+dbil.combat.fall_damage_mult (Dano de queda) float 0.35 0 2
+
+[Ki e voo]
+# Ki por segundo voando em movimento (antes da eficiência).
+dbil.flight.drain_moving (Custo de Ki do voo) float 2.0 0 50
+# Ki por segundo no voo rápido.
+dbil.flight.drain_boost (Custo de Ki do voo rápido) float 6.0 0 100
+# Velocidade do voo (multiplicador da caminhada).
+dbil.flight.speed (Velocidade do voo) float 2.2 1 10
+# Porcentagem do Ki máximo recuperada por segundo ao carregar.
+dbil.ki.charge_percent_per_second (Velocidade de carregar Ki) float 18 1 100
+
+[Progressão]
+# Nível máximo.
+dbil.progression.max_level (Nível máximo) int 50 1 1000
+# XP base para o nível 2 (a curva cresce a partir dele).
+dbil.progression.xp_base (XP base por nível) float 100 1 100000
+
+[Inimigos]
+# Inimigos vivos por gerador.
+dbil.enemies.spawner_max_alive (Inimigos por gerador) int 2 0 20
+# Segundos para um gerador repor um inimigo.
+dbil.enemies.spawner_respawn_delay (Tempo de reaparecimento) int 20 1 3600
+
+[Salvamento]
+# Segundos entre salvamentos automáticos.
+dbil.general.autosave_interval (Intervalo de salvamento) int 30 5 3600
